@@ -1,19 +1,32 @@
+
 services:
-  neo4j:
-    image: neo4j:5.8.0
-    container_name: neo4j
+  db:
+    container_name: postgres_database
+    image: postgres:17.2
+    restart: always
     environment:
-      - NEO4J_AUTH=neo4j/password  
+      POSTGRES_USER: evidence
+      POSTGRES_PASSWORD: evidence
+      POSTGRES_DB: evidence
     ports:
-      - 7687:7687  
-      - 7474:7474  
+      - "5432:5432"
     volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-      - neo4j_import:/import
-      - neo4j_plugins:/plugins
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: postgres_admin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+
+
 volumes:
-  neo4j_data:
-  neo4j_logs:
-  neo4j_import:
-  neo4j_plugins:
+  postgres_data:
+    driver: local

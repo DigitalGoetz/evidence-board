@@ -1,0 +1,62 @@
+
+from enum import StrEnum
+from typing import List
+from sqlalchemy import String, Enum, ForeignKey, Table, Column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+class Base(DeclarativeBase):
+    pass
+
+# Social ORMs
+class GroupType(StrEnum):
+    COMPANY = "company"
+    ORGANIZATION = "organization"
+    FAMILY = "family"
+
+social_association_table = Table(
+    "social_association_table",
+    Base.metadata,
+    Column("group_id", ForeignKey("groups.id"), primary_key=True),
+    Column("person_id", ForeignKey("people.id"), primary_key=True),
+)
+
+class Group(Base):
+    __tablename__ = "groups"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(64))
+    type: Mapped[GroupType] = mapped_column(Enum(GroupType), nullable=False)
+    members: Mapped[List["Person"]] = relationship(secondary=social_association_table, back_populates="affiliations")
+
+class Person(Base):
+    __tablename__ = "people"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(64))
+    affiliations: Mapped[List["Group"]] = relationship(secondary=social_association_table, back_populates="members")
+
+# Geospatial ORMs
+class PlaceType(StrEnum):
+    COUNTRY = "country"
+    REGION = "region"
+    STATE = "state"
+    CITY = "city"
+
+geospatial_association_table = Table(
+    "geospatial_association_table",
+    Base.metadata,
+    Column("place_id", ForeignKey("places.id"), primary_key=True),
+    Column("location_id", ForeignKey("locations.id"), primary_key=True),
+)
+
+class Place(Base):
+    __tablename__ = "places"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(64))
+    type: Mapped[PlaceType] = mapped_column(Enum(PlaceType), nullable=False)
+    contains: Mapped[List["Location"]] = relationship(secondary=geospatial_association_table, back_populates="within")
+
+class Location(Base): # specific locations within a town/city
+    __tablename__ = "locations"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(31))
+    within: Mapped["Place"] = relationship(secondary=geospatial_association_table, back_populates="contains")
