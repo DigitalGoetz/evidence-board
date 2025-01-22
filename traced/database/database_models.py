@@ -34,11 +34,17 @@ class Person(Base):
     affiliations: Mapped[List["Group"]] = relationship(secondary=social_association_table, back_populates="members")
 
 # Geospatial ORMs
+
 class PlaceType(StrEnum):
     COUNTRY = "country"
     REGION = "region"
     STATE = "state"
     CITY = "city"
+
+    def get_place_types(self) -> List[str]:
+        place_types = [PlaceType.COUNTRY, PlaceType.REGION, PlaceType.STATE, PlaceType.CITY]
+        return place_types
+
 
 geospatial_association_table = Table(
     "geospatial_association_table",
@@ -47,7 +53,7 @@ geospatial_association_table = Table(
     Column("location_id", ForeignKey("locations.id"), primary_key=True),
 )
 
-class Place(Base):
+class Place(Base): # higher level general locations (Country, State, Region, City)
     __tablename__ = "places"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -55,8 +61,8 @@ class Place(Base):
     type: Mapped[PlaceType] = mapped_column(Enum(PlaceType), nullable=False)
     contains: Mapped[List["Location"]] = relationship(secondary=geospatial_association_table, back_populates="within")
 
-class Location(Base): # specific locations within a town/city
+class Location(Base): # specific locations (Store, Building, Cave)
     __tablename__ = "locations"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(31))
-    within: Mapped["Place"] = relationship(secondary=geospatial_association_table, back_populates="contains")
+    within: Mapped[List["Place"]] = relationship(secondary=geospatial_association_table, back_populates="contains")
