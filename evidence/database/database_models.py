@@ -14,6 +14,10 @@ class ObjectType(StrEnum):
     LOCATION = "location"
 
 
+def get_names(list_of_models):
+    return [model.name for model in list_of_models]
+
+
 tagged_groups = Table(
     "tagged_groups",
     Base.metadata,
@@ -44,6 +48,9 @@ class Tag(Base):
     people: Mapped[List["Person"]] = relationship(secondary=tagged_people, back_populates="tags")
     locations: Mapped[List["Location"]] = relationship(secondary=tagged_locations, back_populates="tags")
 
+    def __repr__(self):
+        return f"Tag(id={self.id}, name={self.name})"
+
 
 # Social ORMs
 class GroupType(StrEnum):
@@ -68,6 +75,9 @@ class Group(Base):
     members: Mapped[List["Person"]] = relationship(secondary=social_association_table, back_populates="affiliations")
     tags: Mapped[List["Tag"]] = relationship(secondary=tagged_groups, back_populates="groups")
 
+    def __repr__(self):
+        return f"Group(id={self.id}, name={self.name}, type={self.type}, members({len(self.members)})={get_names(self.members)})"
+
 
 class Person(Base):
     __tablename__ = "people"
@@ -75,6 +85,9 @@ class Person(Base):
     name: Mapped[str] = mapped_column(String(64))
     affiliations: Mapped[List["Group"]] = relationship(secondary=social_association_table, back_populates="members")
     tags: Mapped[List["Tag"]] = relationship(secondary=tagged_people, back_populates="people")
+
+    def __repr__(self):
+        return f"Person(id={self.id}, name={self.name}, affiliations({len(self.affiliations)})={get_names(self.affiliations)})"
 
 
 # Geospatial ORMs

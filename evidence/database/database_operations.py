@@ -1,6 +1,6 @@
 from typing import List
 from database.database_models import Group, GroupType, Person, Tag
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 
 class TagOperations:
@@ -171,7 +171,7 @@ class GroupOperations:
     def get_all(self, engine):
         groups = []
         with Session(engine) as session:
-            found_groups = session.query(Group).all()
+            found_groups = session.query(Group).options(joinedload(Group.members)).options(joinedload(Group.tags)).all()
             for group in found_groups:
                 groups.append(group)
         return groups
@@ -290,7 +290,7 @@ class PersonOperations:
     def get_all(self, engine):
         people = []
         with Session(engine) as session:
-            found_people = session.query(Person).all()
+            found_people = session.query(Person).options(joinedload(Person.affiliations)).options(joinedload(Person.tags)).all()
             for person in found_people:
                 people.append(person)
         return people
