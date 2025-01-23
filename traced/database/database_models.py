@@ -1,16 +1,18 @@
-
 from enum import StrEnum
 from typing import List
 from sqlalchemy import String, Enum, ForeignKey, Table, Column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class ObjectType(StrEnum):
     GROUP = "group"
     PERSON = "person"
     LOCATION = "location"
+
 
 tagged_groups = Table(
     "tagged_groups",
@@ -33,19 +35,28 @@ tagged_locations = Table(
     Column("location_id", ForeignKey("locations.id"), primary_key=True),
 )
 
+
 class Tag(Base):
     __tablename__ = "tags"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True)
-    groups: Mapped[List["Group"]] = relationship(secondary=tagged_groups, back_populates="tags")
-    people: Mapped[List["Person"]] = relationship(secondary=tagged_people, back_populates="tags")
-    locations: Mapped[List["Location"]] = relationship(secondary=tagged_locations, back_populates="tags")
+    groups: Mapped[List["Group"]] = relationship(
+        secondary=tagged_groups, back_populates="tags"
+    )
+    people: Mapped[List["Person"]] = relationship(
+        secondary=tagged_people, back_populates="tags"
+    )
+    locations: Mapped[List["Location"]] = relationship(
+        secondary=tagged_locations, back_populates="tags"
+    )
+
 
 # Social ORMs
 class GroupType(StrEnum):
     COMPANY = "company"
     ORGANIZATION = "organization"
     FAMILY = "family"
+
 
 social_association_table = Table(
     "social_association_table",
@@ -54,23 +65,34 @@ social_association_table = Table(
     Column("person_id", ForeignKey("people.id"), primary_key=True),
 )
 
+
 class Group(Base):
     __tablename__ = "groups"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64))
     type: Mapped[GroupType] = mapped_column(Enum(GroupType), nullable=False)
-    members: Mapped[List["Person"]] = relationship(secondary=social_association_table, back_populates="affiliations")
-    tags: Mapped[List["Tag"]] = relationship(secondary=tagged_groups, back_populates="groups")
+    members: Mapped[List["Person"]] = relationship(
+        secondary=social_association_table, back_populates="affiliations"
+    )
+    tags: Mapped[List["Tag"]] = relationship(
+        secondary=tagged_groups, back_populates="groups"
+    )
 
 
 class Person(Base):
     __tablename__ = "people"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64))
-    affiliations: Mapped[List["Group"]] = relationship(secondary=social_association_table, back_populates="members")
-    tags: Mapped[List["Tag"]] = relationship(secondary=tagged_people, back_populates="people")
+    affiliations: Mapped[List["Group"]] = relationship(
+        secondary=social_association_table, back_populates="members"
+    )
+    tags: Mapped[List["Tag"]] = relationship(
+        secondary=tagged_people, back_populates="people"
+    )
+
 
 # Geospatial ORMs
+
 
 class PlaceType(StrEnum):
     COUNTRY = "country"
@@ -79,7 +101,12 @@ class PlaceType(StrEnum):
     CITY = "city"
 
     def get_place_types(self) -> List[str]:
-        place_types = [PlaceType.COUNTRY, PlaceType.REGION, PlaceType.STATE, PlaceType.CITY]
+        place_types = [
+            PlaceType.COUNTRY,
+            PlaceType.REGION,
+            PlaceType.STATE,
+            PlaceType.CITY,
+        ]
         return place_types
 
 
@@ -90,17 +117,25 @@ geospatial_association_table = Table(
     Column("location_id", ForeignKey("locations.id"), primary_key=True),
 )
 
-class Place(Base): # higher level general locations (Country, State, Region, City)
+
+class Place(Base):  # higher level general locations (Country, State, Region, City)
     __tablename__ = "places"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64))
     type: Mapped[PlaceType] = mapped_column(Enum(PlaceType), nullable=False)
-    contains: Mapped[List["Location"]] = relationship(secondary=geospatial_association_table, back_populates="within")
+    contains: Mapped[List["Location"]] = relationship(
+        secondary=geospatial_association_table, back_populates="within"
+    )
 
-class Location(Base): # specific locations (Store, Building, Cave)
+
+class Location(Base):  # specific locations (Store, Building, Cave)
     __tablename__ = "locations"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(31))
-    within: Mapped[List["Place"]] = relationship(secondary=geospatial_association_table, back_populates="contains")
-    tags: Mapped[List["Tag"]] = relationship(secondary=tagged_locations, back_populates="locations")
+    within: Mapped[List["Place"]] = relationship(
+        secondary=geospatial_association_table, back_populates="contains"
+    )
+    tags: Mapped[List["Tag"]] = relationship(
+        secondary=tagged_locations, back_populates="locations"
+    )

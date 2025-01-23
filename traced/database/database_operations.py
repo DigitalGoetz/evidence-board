@@ -1,4 +1,3 @@
-
 from typing import List
 from database.database_models import Group, GroupType, Person, Tag
 from sqlalchemy.orm import Session
@@ -33,7 +32,7 @@ class TagOperations:
                 return True
             else:
                 return False
-            
+
     def get_all(self, engine):
         tags = []
         with Session(engine) as session:
@@ -41,7 +40,7 @@ class TagOperations:
             for tag in found_tags:
                 tags.append(tag)
         return tags
-    
+
     def get_tagged(self, engine, tag_name: str):
         with Session(engine) as session:
             tag = session.query(Tag).filter(Tag.name == tag_name).first()
@@ -49,15 +48,11 @@ class TagOperations:
                 return {
                     "groups": [group.name for group in tag.groups],
                     "people": [person.name for person in tag.people],
-                    "locations": [location.name for location in tag.locations]
+                    "locations": [location.name for location in tag.locations],
                 }
             else:
-                return {
-                    "groups": [],
-                    "people": [],
-                    "locations": []
-                }
-    
+                return {"groups": [], "people": [], "locations": []}
+
     def delete(self, engine, tag_name: str) -> bool:
         with Session(engine) as session:
             try:
@@ -71,7 +66,7 @@ class TagOperations:
                         person.tags.remove(tag)
                     for location in tag.locations:
                         location.tags.remove(tag)
-                    
+
                     # Delete the tag itself
                     session.delete(tag)
                     session.commit()
@@ -83,7 +78,6 @@ class TagOperations:
                 print(f"Error deleting tag: {e}")
                 session.rollback()
                 return False
-
 
 
 class GroupOperations:
@@ -138,9 +132,9 @@ class GroupOperations:
                 session.add(new_group)
                 session.commit()
                 return True
-        
+
         return False
-    
+
     def tag(self, engine, group_name: str, tag_name: str) -> bool:
         with Session(engine) as session:
             group = session.query(Group).filter(Group.name == group_name).first()
@@ -152,7 +146,7 @@ class GroupOperations:
                 return True
 
             return False
-        
+
     def untag(self, engine, group_name: str, tag_name: str) -> bool:
         with Session(engine) as session:
             group = session.query(Group).filter(Group.name == group_name).first()
@@ -181,7 +175,7 @@ class GroupOperations:
             for group in found_groups:
                 groups.append(group)
         return groups
-    
+
     def remove_member(self, engine, group_name: str, person_name: str) -> bool:
         with Session(engine) as session:
             group = session.query(Group).filter(Group.name == group_name).first()
@@ -193,7 +187,8 @@ class GroupOperations:
                 return True
 
             return False
-    
+
+
 class PersonOperations:
     def __init__(self):
         pass
@@ -203,24 +198,26 @@ class PersonOperations:
             if self.exists(engine, person_name):
                 print(f"Person {person_name} already exists")
             else:
-                affiliations = session.query(Group).filter(Group.name.in_(affiliation_names)).all()
-                new_person = Person(
-                    name=person_name,
-                    affiliations=affiliations,
-                    tags=[]
+                affiliations = (
+                    session.query(Group).filter(Group.name.in_(affiliation_names)).all()
                 )
-                
+                new_person = Person(
+                    name=person_name, affiliations=affiliations, tags=[]
+                )
+
                 session.add(new_person)
                 session.commit()
                 return True
-        
+
         return False
-    
+
     def delete(self, engine, person_name: str) -> bool:
         with Session(engine) as session:
             try:
                 # Find the person
-                person = session.query(Person).filter(Person.name == person_name).first()
+                person = (
+                    session.query(Person).filter(Person.name == person_name).first()
+                )
                 if person:
                     # Clear all references from objects that use this person
                     for affiliation in person.affiliations:
@@ -239,7 +236,7 @@ class PersonOperations:
                 print(f"Error deleting person: {e}")
                 session.rollback()
                 return False
-            
+
     def rename(self, engine, person_name: str, new_name: str) -> bool:
         with Session(engine) as session:
             person = session.query(Person).filter(Person.name == person_name).first()
@@ -250,7 +247,7 @@ class PersonOperations:
             else:
                 print(f"Person {person_name} not found")
                 return False
-    
+
     def tag(self, engine, person_name: str, tag_name: str) -> bool:
         with Session(engine) as session:
             person = session.query(Person).filter(Person.name == person_name).first()
@@ -262,7 +259,7 @@ class PersonOperations:
                 return True
 
             return False
-        
+
     def untag(self, engine, person_name: str, tag_name: str) -> bool:
         with Session(engine) as session:
             person = session.query(Person).filter(Person.name == person_name).first()
@@ -274,22 +271,26 @@ class PersonOperations:
                 return True
 
             return False
-    
+
     def add_affiliation(self, engine, person_name: str, affiliation_name: str) -> bool:
         with Session(engine) as session:
             person = session.query(Person).filter(Person.name == person_name).first()
-            affiliation = session.query(Group).filter(Group.name == affiliation_name).first()
+            affiliation = (
+                session.query(Group).filter(Group.name == affiliation_name).first()
+            )
 
             if person and affiliation and affiliation not in person.affiliations:
                 person.affiliations.append(affiliation)
                 session.commit()
                 return True
-            
+
             return False
 
     def exists(self, engine, person_name: str) -> bool:
         with Session(engine) as session:
-            person_check = session.query(Person).filter(Person.name == person_name).first()
+            person_check = (
+                session.query(Person).filter(Person.name == person_name).first()
+            )
 
             if person_check:
                 return True
