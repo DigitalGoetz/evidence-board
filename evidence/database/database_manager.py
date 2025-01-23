@@ -1,15 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from database.database_models import (
-    Base,
-    Group,
-    GroupType,
-    Person,
-    Place,
-    PlaceType,
-    Location,
-)
+from database.database_models import Base
 
 
 def get_engine():

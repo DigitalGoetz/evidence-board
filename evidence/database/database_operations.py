@@ -198,12 +198,8 @@ class PersonOperations:
             if self.exists(engine, person_name):
                 print(f"Person {person_name} already exists")
             else:
-                affiliations = (
-                    session.query(Group).filter(Group.name.in_(affiliation_names)).all()
-                )
-                new_person = Person(
-                    name=person_name, affiliations=affiliations, tags=[]
-                )
+                affiliations = session.query(Group).filter(Group.name.in_(affiliation_names)).all()
+                new_person = Person(name=person_name, affiliations=affiliations, tags=[])
 
                 session.add(new_person)
                 session.commit()
@@ -215,9 +211,7 @@ class PersonOperations:
         with Session(engine) as session:
             try:
                 # Find the person
-                person = (
-                    session.query(Person).filter(Person.name == person_name).first()
-                )
+                person = session.query(Person).filter(Person.name == person_name).first()
                 if person:
                     # Clear all references from objects that use this person
                     for affiliation in person.affiliations:
@@ -275,9 +269,7 @@ class PersonOperations:
     def add_affiliation(self, engine, person_name: str, affiliation_name: str) -> bool:
         with Session(engine) as session:
             person = session.query(Person).filter(Person.name == person_name).first()
-            affiliation = (
-                session.query(Group).filter(Group.name == affiliation_name).first()
-            )
+            affiliation = session.query(Group).filter(Group.name == affiliation_name).first()
 
             if person and affiliation and affiliation not in person.affiliations:
                 person.affiliations.append(affiliation)
@@ -288,9 +280,7 @@ class PersonOperations:
 
     def exists(self, engine, person_name: str) -> bool:
         with Session(engine) as session:
-            person_check = (
-                session.query(Person).filter(Person.name == person_name).first()
-            )
+            person_check = session.query(Person).filter(Person.name == person_name).first()
 
             if person_check:
                 return True
@@ -300,7 +290,7 @@ class PersonOperations:
     def get_all(self, engine):
         people = []
         with Session(engine) as session:
-            found_people = session.query(Group).all()
+            found_people = session.query(Person).all()
             for person in found_people:
                 people.append(person)
-        return person
+        return people
