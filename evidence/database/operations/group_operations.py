@@ -2,6 +2,7 @@ from typing import List, Optional
 from database.database_models import Group, GroupType, Person, Tag
 from sqlalchemy.orm import Session, joinedload
 
+
 class GroupOperations:
     def __init__(self, engine):
         self.engine = engine
@@ -97,12 +98,12 @@ class GroupOperations:
             for group in found_groups:
                 groups.append(group)
         return groups
-    
+
     def get_by_id(self, id) -> Group:
         with Session(self.engine) as session:
             group = session.query(Group).filter(Group.id == id).options(joinedload(Group.members)).options(joinedload(Group.tags)).first()
             return group
-        
+
     def get_by_name(self, group_name: str) -> Group:
         with Session(self.engine) as session:
             group = session.query(Group).filter(Group.name == group_name).options(joinedload(Group.members)).options(joinedload(Group.tags)).first()

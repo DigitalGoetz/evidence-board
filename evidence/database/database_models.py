@@ -135,6 +135,7 @@ class Location(Base):  # higher level general locations (Country, State, Region,
     contains: Mapped[List["NamedPlace"]] = relationship(secondary=geospatial_association_table, back_populates="within")
     tags: Mapped[List["Tag"]] = relationship(secondary=tagged_locations, back_populates="locations")
 
+
 class NamedPlace(Base):  # specific locations (Store, Building, Cave)
     __tablename__ = "places"
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -30,19 +30,18 @@ class DatabaseManager:
         engine = create_engine(database_url, echo=False)
         Base.metadata.create_all(engine)
         return engine
-    
+
     def groups(self) -> GroupOperations:
         return self._group_ops
-    
+
     def people(self) -> PersonOperations:
         return self._person_ops
-    
+
     def tags(self) -> TagOperations:
         return self._tag_ops
-    
+
     def locations(self) -> LocationOperations:
         return self._location_ops
-    
+
     def places(self) -> PlaceOperations:
         return self._place_ops
-

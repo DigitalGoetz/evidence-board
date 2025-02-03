@@ -94,7 +94,7 @@ class PlaceOperations:
             for place in found_places:
                 places.append(place)
         return places
-    
+
     def located_within(self, place_name: str, within_location: str) -> Optional[NamedPlace]:
         with Session(self.engine) as session:
             place = session.query(NamedPlace).filter(NamedPlace.name == place_name).first()

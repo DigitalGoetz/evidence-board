@@ -2,6 +2,7 @@ from typing import List, Optional
 from database.database_models import Tag, Location, LocationType
 from sqlalchemy.orm import Session, joinedload
 
+
 class LocationOperations:
 
     def __init__(self, engine):
@@ -18,17 +19,17 @@ class LocationOperations:
                 session.commit()
                 return new_place
         return None
-    
+
     def delete(self, location_name: str) -> bool:
         with Session(self.engine) as session:
             try:
                 # Find the Location
                 location = session.query(Location).filter(Location.name == location_name).first()
-                if place:
+                if location:
                     # Clear all references from objects that use this Location
                     for place in location.contains:
                         place.within.remove(place)
-                    
+
                     # Delete the place itself
                     session.delete(place)
                     session.commit()
@@ -40,7 +41,7 @@ class LocationOperations:
                 print(f"Error deleting location: {e}")
                 session.rollback()
                 return False
-            
+
     def rename(self, location_name: str, new_name: str) -> Optional[Location]:
         with Session(self.engine) as session:
             location = session.query(Location).filter(Location.name == location_name).first()
@@ -51,7 +52,7 @@ class LocationOperations:
             else:
                 print(f"Location {location_name} not found")
                 return None
-            
+
     def tag(self, location_name: str, tag_name: str) -> Optional[Location]:
         with Session(self.engine) as session:
             location = session.query(Location).filter(Location.name == location_name).first()
@@ -63,7 +64,7 @@ class LocationOperations:
                 return location
 
             return None
-        
+
     def untag(self, location_name: str, tag_name: str) -> Optional[Location]:
         with Session(self.engine) as session:
             location = session.query(Location).filter(Location.name == location_name).first()
@@ -75,7 +76,7 @@ class LocationOperations:
                 return location
 
             return None
-        
+
     def exists(self, location_name: str) -> bool:
         with Session(self.engine) as session:
             location_check = session.query(Location).filter(Location.name == location_name).first()
@@ -84,7 +85,7 @@ class LocationOperations:
                 return True
             else:
                 return False
-            
+
     def get_all(self) -> List[Location]:
         locations = []
         with Session(self.engine) as session:
@@ -92,4 +93,3 @@ class LocationOperations:
             for location in found_locations:
                 locations.append(location)
         return locations
-    

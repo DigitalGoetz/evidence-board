@@ -2,6 +2,7 @@ from typing import List, Dict, Optional
 from database.database_models import Tag
 from sqlalchemy.orm import Session
 
+
 class TagOperations:
     def __init__(self, engine):
         self.engine = engine
@@ -56,12 +57,12 @@ class TagOperations:
                 }
             else:
                 return {"groups": [], "people": [], "locations": []}
-            
+
     def get_by_id(self, tag_name: str) -> Tag:
         with Session(self.engine) as session:
             tag = session.query(Tag).filter(Tag.name == tag_name).first()
             return tag
-        
+
     def get_by_name(self, tag_name: str) -> Tag:
         with Session(self.engine) as session:
             tag = session.query(Tag).filter(Tag.name == tag_name).first()
