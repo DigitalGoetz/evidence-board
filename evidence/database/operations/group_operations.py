@@ -1,15 +1,19 @@
 from typing import List, Optional
-from database.database_models import Group, GroupType, Person, Tag
+from database.database_models import GroupDb, GroupType, PersonDb, TagDb
 from sqlalchemy.orm import Session, joinedload
 
 
-class GroupOperations:
+class GroupDbOperations:
     def __init__(self, engine):
         self.engine = engine
 
-    def rename(self, group_name: str, new_name: str) -> Optional[Group]:
+    def rename(self, group_name: str, new_name: str, eager: bool = False) -> Optional[GroupDb]:
         with Session(self.engine) as session:
-            group = session.query(Group).filter(Group.name == group_name).first()
+            if eager:
+                group = session.query(GroupDb).filter(GroupDb.name == group_name).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).first()
+            else:
+                group = session.query(GroupDb).filter(GroupDb.name == group_name).first()
+
             if group:
                 group.name = new_name
                 session.commit()
@@ -22,7 +26,7 @@ class GroupOperations:
         with Session(self.engine) as session:
             try:
                 # Find the group
-                group = session.query(Group).filter(Group.name == group_name).first()
+                group = session.query(GroupDb).filter(GroupDb.name == group_name).first()
                 if group:
                     # Clear all references from objects that use this group
                     for person in group.members:
@@ -42,38 +46,44 @@ class GroupOperations:
                 session.rollback()
                 return False
 
-    def create(self, group_name: str, group_type: GroupType) -> Optional[Group]:
-        with Session(self.engine) as session:
-            if self.exists(group_name):
+    def create(self, group_name: str, group_type: GroupType) -> Optional[GroupDb]:
+        with Session(self.engine, expire_on_commit=False) as session:
+
+            id = None
+
+            if self._exists(group_name):
                 print(f"Group {group_name} already exists")
             else:
-                new_group = Group(
+                new_group = GroupDb(
                     name=group_name,
                     type=group_type,
-                    tags=[],
                 )
                 session.add(new_group)
                 session.commit()
-                return new_group
 
-        return None
+                id = new_group.id
 
-    def tag(self, group_name: str, tag_name: str) -> Optional[Group]:
+                return self.get_by_id(id)
+
+        return session.query(GroupDb).filter(GroupDb.name == group_name).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).first()
+
+    def tag(self, group_name: str, tag_name: str) -> Optional[GroupDb]:
         with Session(self.engine) as session:
-            group = session.query(Group).filter(Group.name == group_name).first()
-            tag = session.query(Tag).filter(Tag.name == tag_name).first()
+            group = session.query(GroupDb).filter(GroupDb.name == group_name).first()
+            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
 
             if group and tag:
+                # TODO check that tag doesn't already exist
                 group.tags.append(tag)
                 session.commit()
                 return group
 
             return None
 
-    def untag(self, group_name: str, tag_name: str) -> Optional[Group]:
+    def untag(self, group_name: str, tag_name: str) -> Optional[GroupDb]:
         with Session(self.engine) as session:
-            group = session.query(Group).filter(Group.name == group_name).first()
-            tag = session.query(Tag).filter(Tag.name == tag_name).first()
+            group = session.query(GroupDb).filter(GroupDb.name == group_name).first()
+            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
 
             if group and tag and tag.name in group.tags:
                 group.tags.remove(tag)
@@ -82,41 +92,40 @@ class GroupOperations:
 
             return None
 
-    def exists(self, group_name: str) -> bool:
+    def _exists(self, group_name: str) -> bool:
         with Session(self.engine) as session:
-            group_check = session.query(Group).filter(Group.name == group_name).first()
+            group_check = session.query(GroupDb).filter(GroupDb.name == group_name).first()
 
             if group_check:
                 return True
             else:
                 return False
 
-    def get_all(self) -> List[Group]:
+    def get_all(self) -> List[GroupDb]:
         groups = []
         with Session(self.engine) as session:
-            found_groups = session.query(Group).options(joinedload(Group.members)).options(joinedload(Group.tags)).all()
+            found_groups = session.query(GroupDb).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).all()
             for group in found_groups:
                 groups.append(group)
         return groups
 
-    def get_by_id(self, id) -> Group:
+    def get_by_id(self, id) -> GroupDb:
         with Session(self.engine) as session:
-            group = session.query(Group).filter(Group.id == id).options(joinedload(Group.members)).options(joinedload(Group.tags)).first()
+            group = session.query(GroupDb).filter(GroupDb.id == id).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).first()
             return group
 
-    def get_by_name(self, group_name: str) -> Group:
+    def get_by_name(self, group_name: str) -> GroupDb:
         with Session(self.engine) as session:
-            group = session.query(Group).filter(Group.name == group_name).options(joinedload(Group.members)).options(joinedload(Group.tags)).first()
+            group = session.query(GroupDb).filter(GroupDb.name == group_name).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).first()
             return group
 
-    def remove_member(self, group_name: str, person_name: str) -> Optional[Group]:
+    def remove_member(self, group_name: str, person_name: str) -> Optional[GroupDb]:
         with Session(self.engine) as session:
-            group = session.query(Group).filter(Group.name == group_name).first()
-            person = session.query(Person).filter(Person.name == person_name).first()
+            group = session.query(GroupDb).filter(GroupDb.name == group_name).first()
+            person = session.query(PersonDb).filter(PersonDb.name == person_name).first()
 
             if group and person and person in group.members:
                 group.members.remove(person)
                 session.commit()
-                return group
 
-            return None
+            return group

@@ -1,19 +1,19 @@
 from typing import List, Dict, Optional
-from database.database_models import Tag
+from database.database_models import TagDb
 from sqlalchemy.orm import Session
 
 
-class TagOperations:
+class TagDbOperations:
     def __init__(self, engine):
         self.engine = engine
 
-    def create(self, name: str) -> Optional[Tag]:
+    def create(self, name: str) -> Optional[TagDb]:
         with Session(self.engine, expire_on_commit=False) as session:
             if self.exists(name):
                 print(f"Tag {name} already exists")
                 return self.get_by_name(name)
             else:
-                new_tag = Tag(
+                new_tag = TagDb(
                     name=name,
                     groups=[],
                     people=[],
@@ -31,24 +31,24 @@ class TagOperations:
 
     def exists(self, tag_name: str) -> bool:
         with Session(self.engine) as session:
-            tag_check = session.query(Tag).filter(Tag.name == tag_name).first()
+            tag_check = session.query(TagDb).filter(TagDb.name == tag_name).first()
 
             if tag_check:
                 return True
             else:
                 return False
 
-    def get_all(self) -> List[Tag]:
+    def get_all(self) -> List[TagDb]:
         tags = []
         with Session(self.engine) as session:
-            found_tags = session.query(Tag).all()
+            found_tags = session.query(TagDb).all()
             for tag in found_tags:
                 tags.append(tag)
         return tags
 
     def get_tagged(self, tag_name: str) -> Dict:
         with Session(self.engine) as session:
-            tag = session.query(Tag).filter(Tag.name == tag_name).first()
+            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
             if tag:
                 return {
                     "groups": [group.name for group in tag.groups],
@@ -58,21 +58,21 @@ class TagOperations:
             else:
                 return {"groups": [], "people": [], "locations": []}
 
-    def get_by_id(self, tag_name: str) -> Tag:
+    def get_by_id(self, tag_name: str) -> TagDb:
         with Session(self.engine) as session:
-            tag = session.query(Tag).filter(Tag.name == tag_name).first()
+            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
             return tag
 
-    def get_by_name(self, tag_name: str) -> Tag:
+    def get_by_name(self, tag_name: str) -> TagDb:
         with Session(self.engine) as session:
-            tag = session.query(Tag).filter(Tag.name == tag_name).first()
+            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
             return tag
 
     def delete(self, tag_name: str) -> bool:
         with Session(self.engine) as session:
             try:
                 # Find the tag
-                tag = session.query(Tag).filter(Tag.name == tag_name).first()
+                tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
                 if tag:
                     # Clear all references from objects that use this tag
                     for group in tag.groups:
