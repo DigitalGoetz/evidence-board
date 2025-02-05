@@ -1,95 +1,76 @@
-from typing import List, Dict, Optional
-from database.database_models import TagDb
-from sqlalchemy.orm import Session
-
+from typing import List
+from sqlalchemy.orm import Session, joinedload
+from database.database_models import GroupDb, GroupType, TagDb
+from database.database_exceptions import ObjectNotFoundException, ObjectAlreadyExistsException, ObjectInfoExistsException, ObjectInfoDoesNotExistException
+from database.database_enumerations import OperationType, ObjectType
 
 class TagDbOperations:
     def __init__(self, engine):
         self.engine = engine
 
-    def create(self, name: str) -> Optional[TagDb]:
-        with Session(self.engine, expire_on_commit=False) as session:
-            if self.exists(name):
-                print(f"Tag {name} already exists")
-                return self.get_by_name(name)
-            else:
-                new_tag = TagDb(
-                    name=name,
-                    groups=[],
-                    people=[],
-                    locations=[],
-                )
-                print("first")
-                print(new_tag)
-                session.add(new_tag)
-                session.commit()
-                print("second  ")
-                print(new_tag)
-                return new_tag
 
-        return None
-
-    def exists(self, tag_name: str) -> bool:
+    def rename(self, tag_id: int, new_name: str) -> TagDb:
         with Session(self.engine) as session:
+            group = session.query(TagDb).filter(TagDb.id == tag_id).first()
+
+            if group:
+                group.name = new_name
+                session.commit()
+                return self.get_by_id(group.id)
+            else:
+                session.rollback()
+                raise ObjectNotFoundException(OperationType.RENAME, tag_id, ObjectType.TAG)
+
+
+    def delete(self, tag_id: int) -> None:
+        with Session(self.engine) as session:
+            tag = session.query(TagDb).filter(TagDb.id == tag_id).first()
+            if tag:
+                for group in tag.groups:
+                    group.tags.remove(tag)
+                for person in tag.people:
+                    person.tags.remove(tag)
+                for location in tag.locations:
+                    location.tags.remove(tag)
+                for place in tag.places:
+                    place.tags.remove(tag)
+
+                session.delete(tag)
+                session.commit()
+            else:
+                raise ObjectNotFoundException(OperationType.DELETE, tag_id, ObjectType.TAG)
+
+    def create(self, tag_name: str) -> TagDb:
+        with Session(self.engine) as session:
+
             tag_check = session.query(TagDb).filter(TagDb.name == tag_name).first()
 
             if tag_check:
-                return True
+                raise ObjectAlreadyExistsException(tag_name, ObjectType.TAG)
             else:
-                return False
+                new_tag = TagDb(
+                    name=tag_name,
+                )
+                session.add(new_tag)
+                session.commit()
+                return self.get_by_id(new_tag.id)
 
     def get_all(self) -> List[TagDb]:
         tags = []
-        with Session(self.engine) as session:
-            found_tags = session.query(TagDb).all()
-            for tag in found_tags:
-                tags.append(tag)
+        try:
+            with Session(self.engine) as session:
+                found_tags = session.query(TagDb).options(joinedload(TagDb.groups)).options(joinedload(TagDb.people)).options(joinedload(TagDb.locations)).options(joinedload(TagDb.places)).all()
+                for tag in found_tags:
+                    tags.append(tag)
+        except Exception as e:
+            print(f"e: {e}")
         return tags
 
-    def get_tagged(self, tag_name: str) -> Dict:
+    def get_by_id(self, id) -> TagDb:
         with Session(self.engine) as session:
-            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
+
+            tag = session.query(TagDb).filter(TagDb.id == id).options(joinedload(TagDb.groups)).options(joinedload(TagDb.people)).options(joinedload(TagDb.locations)).options(joinedload(TagDb.places)).first()
             if tag:
-                return {
-                    "groups": [group.name for group in tag.groups],
-                    "people": [person.name for person in tag.people],
-                    "locations": [location.name for location in tag.locations],
-                }
+                return tag
             else:
-                return {"groups": [], "people": [], "locations": []}
-
-    def get_by_id(self, tag_name: str) -> TagDb:
-        with Session(self.engine) as session:
-            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
-            return tag
-
-    def get_by_name(self, tag_name: str) -> TagDb:
-        with Session(self.engine) as session:
-            tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
-            return tag
-
-    def delete(self, tag_name: str) -> bool:
-        with Session(self.engine) as session:
-            try:
-                # Find the tag
-                tag = session.query(TagDb).filter(TagDb.name == tag_name).first()
-                if tag:
-                    # Clear all references from objects that use this tag
-                    for group in tag.groups:
-                        group.tags.remove(tag)
-                    for person in tag.people:
-                        person.tags.remove(tag)
-                    for location in tag.locations:
-                        location.tags.remove(tag)
-
-                    # Delete the tag itself
-                    session.delete(tag)
-                    session.commit()
-                    return True
-                else:
-                    print(f"Tag {tag_name} not found")
-                    return False
-            except Exception as e:
-                print(f"Error deleting tag: {e}")
-                session.rollback()
-                return False
+                raise ObjectNotFoundException(OperationType.READ, id, ObjectType.TAG)

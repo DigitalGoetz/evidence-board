@@ -9,13 +9,13 @@ class GroupDbOperations:
     def __init__(self, engine):
         self.engine = engine
 
-    def _contains_tag(group: GroupDb, tag: TagDb) -> bool:
+    def _contains_tag(self, group: GroupDb, tag: TagDb) -> bool:
         for group_tag in group.tags:
             if group_tag.name == tag.name:
                 return True
         return False
 
-    def _contains_person(group: GroupDb, person: PersonDb) -> bool:
+    def _contains_person(self, group: GroupDb, person: PersonDb) -> bool:
         for group_member in group.members:
             if group_member.name == person.name:
                 return True
@@ -48,7 +48,7 @@ class GroupDbOperations:
                 raise ObjectNotFoundException(OperationType.DELETE, group_id, ObjectType.GROUP)
 
     def create(self, group_name: str, group_type: GroupType) -> GroupDb:
-        with Session(self.engine, expire_on_commit=False) as session:
+        with Session(self.engine) as session:
 
             group_check = session.query(GroupDb).filter(GroupDb.name == group_name).first()
 
@@ -101,16 +101,22 @@ class GroupDbOperations:
 
     def get_all(self) -> List[GroupDb]:
         groups = []
-        with Session(self.engine) as session:
-            found_groups = session.query(GroupDb).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).all()
-            for group in found_groups:
-                groups.append(group)
+        try:
+            with Session(self.engine) as session:
+                found_groups = session.query(GroupDb).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).all()
+                for group in found_groups:
+                    groups.append(group)
+        except Exception as e:
+            print(f"e: {e}")
         return groups
 
     def get_by_id(self, id) -> GroupDb:
         with Session(self.engine) as session:
             group = session.query(GroupDb).filter(GroupDb.id == id).options(joinedload(GroupDb.members)).options(joinedload(GroupDb.tags)).first()
-            return group
+            if group:
+                return group
+            else:
+                raise ObjectNotFoundException(OperationType.READ, id, ObjectType.GROUP)
 
     def remove_member(self, group_id: int, person_id: int) -> GroupDb:
         with Session(self.engine) as session:

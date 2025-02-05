@@ -40,7 +40,7 @@ async def create_group(group: GroupBase) -> Union[GroupSchema, Dict]:
         return e.return_dict()
 
 
-@router.put("/groups/tag/{group_id}/{tag_id}")
+@router.put("/groups/tag/{group_id}/{tag_id}", tags=["groups"])
 async def tag_group(group_id: int, tag_id: int) -> Union[GroupSchema, Dict]:
     try:
         group = database.groups().tag(group_id, tag_id)
@@ -51,10 +51,10 @@ async def tag_group(group_id: int, tag_id: int) -> Union[GroupSchema, Dict]:
         return e.return_dict()
 
 
-@router.put("/groups/untag/{group_id}/{tag_id}")
+@router.put("/groups/untag/{group_id}/{tag_id}", tags=["groups"])
 async def untag_group(group_id: int, tag_name: int) -> GroupSchema:
     try:
-        group = database.groups().tag(group_id, tag_name)
+        group = database.groups().untag(group_id, tag_name)
         return group
     except ObjectNotFoundException as e:
         return e.return_dict()
