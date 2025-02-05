@@ -1,4 +1,3 @@
-
 import uvicorn
 from fastapi import FastAPI
 from evidence.routers import groups, locations, people, tags, places
@@ -13,5 +12,3 @@ if __name__ == "__main__":
     app.include_router(locations.router)
 
     uvicorn.run(app, host="0.0.0.0", port=8181)
-
-

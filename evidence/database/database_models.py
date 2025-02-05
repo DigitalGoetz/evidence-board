@@ -1,15 +1,17 @@
-
 from typing import List, Optional
 from sqlalchemy import String, Enum, ForeignKey, Table, Column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from evidence.database.database_enumerations import GroupType, LocationType, PersonStatus
 from evidence.pydantic.schemas import GroupBase
 
+
 class Base(DeclarativeBase):
     pass
 
+
 def get_names(list_of_models):
     return [model.name for model in list_of_models]
+
 
 tagged_groups = Table(
     "tagged_groups",
@@ -53,6 +55,7 @@ social_association_table = Table(
     Column("person_id", ForeignKey("people.id"), primary_key=True),
 )
 
+
 class TagDb(Base):
     __tablename__ = "tags"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -64,6 +67,7 @@ class TagDb(Base):
 
     def __repr__(self):
         return f"TagDb(id={self.id}, name={self.name})"
+
 
 class GroupDb(Base):
     __tablename__ = "groups"
@@ -87,6 +91,7 @@ class GroupDb(Base):
     def __repr__(self):
         return f"GroupDb(id={self.id}, name={self.name}, type={self.type}, members({len(self.members)})={get_names(self.members)}, tags({get_names(self.tags)}))"
 
+
 class PersonDb(Base):
     __tablename__ = "people"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -97,6 +102,7 @@ class PersonDb(Base):
 
     def __repr__(self):
         return f"PersonDb(id={self.id}, name={self.name}, affiliations({len(self.affiliations)})={get_names(self.affiliations)})"
+
 
 class LocationDb(Base):  # higher level general locations (Country, State, Region, City)
     __tablename__ = "locations"
@@ -109,6 +115,7 @@ class LocationDb(Base):  # higher level general locations (Country, State, Regio
 
     def __repr__(self):
         return f"Person(id={self.id}, name={self.name}, affiliations({len(self.affiliations)})={get_names(self.affiliations)})"
+
 
 class PlaceDb(Base):  # specific locations (Store, Building, Cave)
     __tablename__ = "places"

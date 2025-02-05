@@ -11,22 +11,37 @@ from typing import List
 #     FRIDAY = "Friday"
 #     SATURDAY = "Saturday"
 
-# class ObjectType(StrEnum):
-#     GROUP = "group"
-#     PERSON = "person"
-#     LOCATION = "location"
-#     PLACE = "place"
+
+class ObjectType(StrEnum):
+    GROUP = "Group"
+    PERSON = "Person"
+    LOCATION = "Location"
+    PLACE = "Place"
+    TAG = "Tag"
+
+
+class OperationType(StrEnum):
+    CREATE = "Create"
+    READ = "Read"
+    RENAME = "Rename"
+    UPDATE = "Update"
+    DELETE = "Delete"
+    ADD_DETAIL = "AddDetail"
+    REMOVE_DETAIL = "RemoveDetail"
+
 
 class GroupType(StrEnum):
     COMPANY = "company"
     ORGANIZATION = "organization"
     FAMILY = "family"
 
+
 class PersonStatus(StrEnum):
     LIVING = "Alive"
     DEAD = "Deceased"
     MISSING = "Missing"
     UNKNOWN = "Unknown"
+
 
 class LocationType(StrEnum):
     COUNTRY = "country"
