@@ -1,16 +1,6 @@
 from enum import StrEnum
 from typing import List
 
-# deprecated
-# class DayoftheWeek(StrEnum):
-#     SUNDAY = "Sunday"
-#     MONDAY = "Monday"
-#     TUESDAY = "Tuesday"
-#     WEDNESDAY = "Wednesday"
-#     THURSDAY = "Thursday"
-#     FRIDAY = "Friday"
-#     SATURDAY = "Saturday"
-
 
 class ObjectType(StrEnum):
     GROUP = "Group"

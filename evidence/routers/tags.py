@@ -8,6 +8,7 @@ from evidence.database.database_models import TagDb
 router = APIRouter()
 database = DatabaseManager()
 
+
 @router.get("/tags/status", tags=["tags"])
 async def get_status():
     return "OK"
@@ -37,6 +38,7 @@ async def create_tag(tag: TagBase) -> Union[TagSchema, Dict]:
         return TagSchema.model_validate(created_tag)
     except ObjectAlreadyExistsException as e:
         return e.return_dict()
+
 
 @router.get("/tags/", tags=["tags"])
 async def get_all() -> List[TagSchema]:

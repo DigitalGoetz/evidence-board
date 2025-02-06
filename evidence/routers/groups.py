@@ -72,7 +72,7 @@ async def get_all() -> List[GroupSchema]:
 
 
 @router.get("/groups/{id}", tags=["groups"])
-async def get_by_id(id: int) -> GroupSchema:
+async def get_by_id(id: int) -> Union[GroupSchema, Dict]:
     try:
         group = database.groups().get_by_id(id)
         return group

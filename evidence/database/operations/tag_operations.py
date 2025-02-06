@@ -1,13 +1,13 @@
 from typing import List
 from sqlalchemy.orm import Session, joinedload
-from database.database_models import GroupDb, GroupType, TagDb
-from database.database_exceptions import ObjectNotFoundException, ObjectAlreadyExistsException, ObjectInfoExistsException, ObjectInfoDoesNotExistException
+from database.database_models import TagDb
+from database.database_exceptions import ObjectNotFoundException, ObjectAlreadyExistsException
 from database.database_enumerations import OperationType, ObjectType
+
 
 class TagDbOperations:
     def __init__(self, engine):
         self.engine = engine
-
 
     def rename(self, tag_id: int, new_name: str) -> TagDb:
         with Session(self.engine) as session:
@@ -20,7 +20,6 @@ class TagDbOperations:
             else:
                 session.rollback()
                 raise ObjectNotFoundException(OperationType.RENAME, tag_id, ObjectType.TAG)
-
 
     def delete(self, tag_id: int) -> None:
         with Session(self.engine) as session:
@@ -59,7 +58,14 @@ class TagDbOperations:
         tags = []
         try:
             with Session(self.engine) as session:
-                found_tags = session.query(TagDb).options(joinedload(TagDb.groups)).options(joinedload(TagDb.people)).options(joinedload(TagDb.locations)).options(joinedload(TagDb.places)).all()
+                found_tags = (
+                    session.query(TagDb)
+                    .options(joinedload(TagDb.groups))
+                    .options(joinedload(TagDb.people))
+                    .options(joinedload(TagDb.locations))
+                    .options(joinedload(TagDb.places))
+                    .all()
+                )
                 for tag in found_tags:
                     tags.append(tag)
         except Exception as e:
@@ -69,7 +75,15 @@ class TagDbOperations:
     def get_by_id(self, id) -> TagDb:
         with Session(self.engine) as session:
 
-            tag = session.query(TagDb).filter(TagDb.id == id).options(joinedload(TagDb.groups)).options(joinedload(TagDb.people)).options(joinedload(TagDb.locations)).options(joinedload(TagDb.places)).first()
+            tag = (
+                session.query(TagDb)
+                .filter(TagDb.id == id)
+                .options(joinedload(TagDb.groups))
+                .options(joinedload(TagDb.people))
+                .options(joinedload(TagDb.locations))
+                .options(joinedload(TagDb.places))
+                .first()
+            )
             if tag:
                 return tag
             else:
