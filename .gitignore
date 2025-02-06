@@ -27,3 +27,6 @@ dist-ssr
 *.sw?
 
 *.egg-info
+
+.vscode/
+.ruff_cache/
