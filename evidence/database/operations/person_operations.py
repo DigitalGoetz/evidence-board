@@ -40,6 +40,7 @@ class PersonDbOperations(BaseOperations):
                 raise ObjectAlreadyExistsException(person_name, ObjectType.PERSON)
             else:
                 new_person = PersonDb(name=person_name)
+                new_person.living = True
 
                 session.add(new_person)
                 session.commit()
