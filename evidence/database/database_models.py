@@ -2,7 +2,7 @@ from typing import List, Optional
 from sqlalchemy import String, Enum, ForeignKey, Table, Column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from evidence.database.database_enumerations import GroupType, LocationType, PersonStatus
-from evidence.pydantic.schemas import GroupBase
+from evidence.pydantic_schemas.schemas import GroupBase
 
 
 class Base(DeclarativeBase):

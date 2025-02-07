@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response, status
 from typing import List, Union, Dict
-from evidence.pydantic.schemas import TagBase, TagSchema
+from evidence.pydantic_schemas.schemas import TagBase, TagSchema
 from evidence.database.database_manager import DatabaseManager
 from database.database_exceptions import ObjectNotFoundException, ObjectAlreadyExistsException
 from evidence.database.database_models import TagDb

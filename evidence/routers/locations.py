@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response, status
 from typing import List, Union, Dict
-from evidence.pydantic.schemas import LocationBase, LocationSchema
+from evidence.pydantic_schemas.schemas import LocationBase, LocationSchema
 from evidence.database.database_manager import DatabaseManager
 from database.database_exceptions import ObjectNotFoundException, ObjectAlreadyExistsException, ObjectInfoExistsException, ObjectInfoDoesNotExistException
 from database.database_enumerations import LocationType
